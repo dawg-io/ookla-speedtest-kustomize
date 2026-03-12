@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speedtest-tracker
+  labels:
+    app: speedtest-tracker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: speedtest-tracker
+  template:
+    metadata:
+      labels:
+        app: speedtest-tracker
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: speedtest-tracker
+          image: lscr.io/linuxserver/speedtest-tracker:1.13.11
+          envFrom:
+            - configMapRef:
+                name: speedtest-tracker-config
+            - secretRef:
+                name: speedtest-tracker-db-secret
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+      volumes:
+        - name: config-volume
+          persistentVolumeClaim:
+            claimName: speedtest-tracker-pvc
